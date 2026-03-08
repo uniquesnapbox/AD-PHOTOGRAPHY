@@ -19,18 +19,21 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Rahul',
                 'email' => 'rahul@adphotography.in',
                 'password' => Hash::make('rahul123'),
+                'drive_folder_id' => 'GOOGLE_DRIVE_FOLDER_ID_1',
                 'folder_id' => 'GOOGLE_DRIVE_FOLDER_ID_1',
             ],
             [
                 'name' => 'Anita',
                 'email' => 'anita@adphotography.in',
                 'password' => Hash::make('anita123'),
+                'drive_folder_id' => 'GOOGLE_DRIVE_FOLDER_ID_2',
                 'folder_id' => 'GOOGLE_DRIVE_FOLDER_ID_2',
             ],
             [
                 'name' => 'Rohit',
                 'email' => 'rohit@adphotography.in',
                 'password' => Hash::make('rohit123'),
+                'drive_folder_id' => 'GOOGLE_DRIVE_FOLDER_ID_3',
                 'folder_id' => 'GOOGLE_DRIVE_FOLDER_ID_3',
             ],
         ];

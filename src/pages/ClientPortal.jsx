@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import { useAuth } from "../context/AuthContext";
 
@@ -6,14 +7,17 @@ const FAV_STORAGE_KEY = "ad_client_favourites";
 
 function ClientPortal() {
   const { user, token, apiBaseUrl } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [galleryLoading, setGalleryLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(true);
+  const [galleryError, setGalleryError] = useState("");
+  const [bookingError, setBookingError] = useState("");
   const [images, setImages] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [preview, setPreview] = useState(null);
   const [favourites, setFavourites] = useState([]);
 
   useEffect(() => {
-    const raw = localStorage.getItem(`${FAV_STORAGE_KEY}_${user?.clientId || "guest"}`);
+    const raw = localStorage.getItem(`${FAV_STORAGE_KEY}_${user?.id || "guest"}`);
     if (raw) {
       try {
         setFavourites(JSON.parse(raw));
@@ -21,19 +25,21 @@ function ClientPortal() {
         setFavourites([]);
       }
     }
-  }, [user?.clientId]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!token) {
-      setLoading(false);
-      setError("Unauthorized session.");
+      setGalleryLoading(false);
+      setBookingLoading(false);
+      setGalleryError("Unauthorized session.");
+      setBookingError("Unauthorized session.");
       return;
     }
 
     async function fetchPhotos() {
       try {
-        setLoading(true);
-        setError("");
+        setGalleryLoading(true);
+        setGalleryError("");
         const res = await fetch(`${apiBaseUrl}/api/client/photos`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -50,14 +56,37 @@ function ClientPortal() {
           downloadUrl: file.download_url,
         }));
         setImages(mapped);
-      } catch (err) {
-        setError("Unable to load gallery. Please contact AD Photography support.");
+      } catch {
+        setGalleryError("Unable to load gallery. Please contact AD Photography support.");
       } finally {
-        setLoading(false);
+        setGalleryLoading(false);
+      }
+    }
+
+    async function fetchBookings() {
+      try {
+        setBookingLoading(true);
+        setBookingError("");
+        const res = await fetch(`${apiBaseUrl}/api/client/bookings`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setBookingError(data?.message || "Unable to load bookings.");
+          return;
+        }
+        setBookings(data.bookings || []);
+      } catch {
+        setBookingError("Unable to connect to booking API.");
+      } finally {
+        setBookingLoading(false);
       }
     }
 
     fetchPhotos();
+    fetchBookings();
   }, [apiBaseUrl, token]);
 
   const toggleFavourite = (fileId) => {
@@ -65,7 +94,7 @@ function ClientPortal() {
       ? favourites.filter((id) => id !== fileId)
       : [...favourites, fileId];
     setFavourites(next);
-    localStorage.setItem(`${FAV_STORAGE_KEY}_${user?.clientId || "guest"}`, JSON.stringify(next));
+    localStorage.setItem(`${FAV_STORAGE_KEY}_${user?.id || "guest"}`, JSON.stringify(next));
   };
 
   const whatsappShareUrl = useMemo(() => {
@@ -80,6 +109,36 @@ function ClientPortal() {
       setTimeout(() => window.open(img.downloadUrl, "_blank", "noopener,noreferrer"), idx * 300);
     });
   };
+
+  const downloadInvoice = async (booking) => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/client/bookings/${booking.id}/invoice`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setBookingError(data?.message || "Invoice download failed.");
+        return;
+      }
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = blobUrl;
+      anchor.download = `${booking.invoice_number || `invoice-${booking.id}`}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      setBookingError("Unable to download invoice.");
+    }
+  };
+
+  const amountFor = (booking) => Number(booking.advance_amount ?? booking.advance_payment ?? 0);
 
   return (
     <>
@@ -110,38 +169,97 @@ function ClientPortal() {
             </div>
           </div>
 
-          {loading && <p className="mt-8 text-slate-500">Loading your gallery...</p>}
-          {!loading && error && <p className="mt-8 text-sm text-red-600">{error}</p>}
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold text-ink">Your Bookings & Payments</h2>
+            {bookingLoading && <p className="mt-4 text-slate-500">Loading your bookings...</p>}
+            {!bookingLoading && bookingError && <p className="mt-4 text-sm text-red-600">{bookingError}</p>}
 
-          {!loading && !error && (
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {images.map((img) => (
-                <article
-                  key={img.id}
-                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-soft"
-                >
-                  <button type="button" className="block w-full" onClick={() => setPreview(img)}>
-                    <img src={img.image} alt={img.name} loading="lazy" className="h-56 w-full object-cover" />
-                  </button>
-                  <div className="p-3">
-                    <p className="truncate text-sm font-medium text-slate-700">{img.name}</p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <a href={img.downloadUrl} target="_blank" rel="noreferrer" className="btn-primary px-3 py-2">
-                        Download
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => toggleFavourite(img.id)}
-                        className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
-                      >
-                        {favourites.includes(img.id) ? "★ Favourite" : "☆ Favourite"}
-                      </button>
+            {!bookingLoading && !bookingError && (
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                {bookings.map((booking) => (
+                  <article key={booking.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-soft">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.15em] text-brand-500">Booking #{booking.id}</p>
+                        <h3 className="mt-1 text-lg font-bold text-ink">{booking.event_type}</h3>
+                        <p className="mt-1 text-sm text-slate-600">Event Date: {booking.event_date}</p>
+                      </div>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-700">
+                        {booking.status}
+                      </span>
                     </div>
+
+                    <div className="mt-4 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                      <p><span className="font-semibold">Payment:</span> {booking.payment_status}</p>
+                      <p><span className="font-semibold">Advance:</span> INR {amountFor(booking).toFixed(2)}</p>
+                      <p className="sm:col-span-2"><span className="font-semibold">Reference:</span> {booking.payment_reference || "-"}</p>
+                      <p className="sm:col-span-2"><span className="font-semibold">Invoice:</span> {booking.invoice_number || "Not generated"}</p>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {booking.status === "approved" && booking.payment_status !== "paid" && (
+                        <Link to={`/payment/${booking.id}`} className="btn-primary px-4 py-2">
+                          Pay Advance
+                        </Link>
+                      )}
+
+                      {booking.payment_status === "paid" && (
+                        <button
+                          type="button"
+                          onClick={() => downloadInvoice(booking)}
+                          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
+                        >
+                          Download Invoice
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+
+                {!bookingLoading && bookings.length === 0 && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                    No bookings found for your account.
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-ink">Your Private Gallery</h2>
+            {galleryLoading && <p className="mt-6 text-slate-500">Loading your gallery...</p>}
+            {!galleryLoading && galleryError && <p className="mt-6 text-sm text-red-600">{galleryError}</p>}
+
+            {!galleryLoading && !galleryError && (
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {images.map((img) => (
+                  <article
+                    key={img.id}
+                    className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-soft"
+                  >
+                    <button type="button" className="block w-full" onClick={() => setPreview(img)}>
+                      <img src={img.image} alt={img.name} loading="lazy" className="h-56 w-full object-cover" />
+                    </button>
+                    <div className="p-3">
+                      <p className="truncate text-sm font-medium text-slate-700">{img.name}</p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <a href={img.downloadUrl} target="_blank" rel="noreferrer" className="btn-primary px-3 py-2">
+                          Download
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => toggleFavourite(img.id)}
+                          className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
+                        >
+                          {favourites.includes(img.id) ? "Unfavourite" : "Favourite"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

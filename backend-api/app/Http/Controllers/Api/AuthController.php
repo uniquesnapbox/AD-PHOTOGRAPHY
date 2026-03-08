@@ -38,6 +38,7 @@ class AuthController extends Controller
                 'id' => $client->id,
                 'name' => $client->name,
                 'email' => $client->email,
+                'drive_folder_id' => $client->resolvedDriveFolderId(),
                 'folder_id' => $client->folder_id,
             ],
         ]);
@@ -46,11 +47,13 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $client = $request->attributes->get('client');
+
         return response()->json([
             'client' => [
                 'id' => $client->id,
                 'name' => $client->name,
                 'email' => $client->email,
+                'drive_folder_id' => $client->resolvedDriveFolderId(),
                 'folder_id' => $client->folder_id,
             ],
         ]);
@@ -62,6 +65,7 @@ class AuthController extends Controller
         if ($token) {
             $token->delete();
         }
+
         return response()->json(['message' => 'Logged out']);
     }
 }

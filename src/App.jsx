@@ -1,4 +1,4 @@
-﻿import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -10,6 +10,7 @@ import Booking from "./pages/Booking";
 import Login from "./pages/Login";
 import ClientPortal from "./pages/ClientPortal";
 import AdminBookings from "./pages/AdminBookings";
+import Payment from "./pages/Payment";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -26,7 +27,22 @@ function App() {
         <Route path="booking" element={<Booking />} />
         <Route path="login" element={<Login />} />
         <Route path="admin/bookings" element={<AdminBookings />} />
-        <Route path="client-portal" element={<ProtectedRoute><ClientPortal /></ProtectedRoute>} />
+        <Route
+          path="client-portal"
+          element={
+            <ProtectedRoute>
+              <ClientPortal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="payment/:bookingId"
+          element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

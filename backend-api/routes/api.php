@@ -15,6 +15,8 @@ Route::middleware('client.auth')->group(function () {
     Route::post('/client/logout', [AuthController::class, 'logout']);
     Route::get('/client/photos', [ClientGalleryController::class, 'index']);
     Route::get('/client/bookings', [BookingController::class, 'clientIndex']);
+    Route::post('/client/bookings/{booking}/pay', [BookingController::class, 'pay']);
+    Route::get('/client/bookings/{booking}/invoice', [BookingController::class, 'downloadInvoice']);
 });
 
 Route::middleware('admin.auth')->group(function () {

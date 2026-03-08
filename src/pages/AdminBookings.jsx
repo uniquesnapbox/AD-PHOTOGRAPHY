@@ -89,20 +89,44 @@ function AdminBookings() {
     }
   };
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (booking, status) => {
     if (!auth.token) return;
+
+    const payload = { status };
+
+    if (status === "approved") {
+      const existing = Number(booking.advance_amount ?? booking.advance_payment ?? 0);
+      const value = window.prompt("Enter advance amount (INR)", existing > 0 ? String(existing) : "5000");
+      if (value === null) return;
+
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        setError("Please enter a valid advance amount greater than 0.");
+        return;
+      }
+
+      payload.advance_amount = amount;
+    }
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/bookings/${id}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/bookings/${booking.id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.token}`,
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(payload),
       });
-      if (res.ok) loadBookings();
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.message || "Failed to update booking status.");
+        return;
+      }
+
+      loadBookings();
     } catch {
-      // ignore
+      setError("Unable to update booking status.");
     }
   };
 
@@ -117,7 +141,7 @@ function AdminBookings() {
       <SEO title="Admin Bookings" path="/admin/bookings" description="Admin booking dashboard." />
       <section className="section-gap bg-white">
         <div className="container-wrap">
-          <SectionHeading eyebrow="Admin" title="Bookings Dashboard" description="Manage all booking requests." />
+          <SectionHeading eyebrow="Admin" title="Bookings Dashboard" description="Manage all booking, payment and invoice status." />
 
           {!auth.token ? (
             <form onSubmit={handleLogin} className="mt-6 max-w-xl rounded-xl border border-slate-200 p-5 shadow-soft">
@@ -146,10 +170,18 @@ function AdminBookings() {
             </form>
           ) : (
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-700">Logged in as: <span className="font-semibold">{auth.admin?.email}</span></p>
+              <p className="text-sm text-slate-700">
+                Logged in as: <span className="font-semibold">{auth.admin?.email}</span>
+              </p>
               <div className="flex gap-2">
                 <button type="button" className="btn-primary" onClick={loadBookings}>Refresh</button>
-                <button type="button" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold" onClick={clearAuth}>Logout</button>
+                <button
+                  type="button"
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold"
+                  onClick={clearAuth}
+                >
+                  Logout
+                </button>
               </div>
             </div>
           )}
@@ -162,35 +194,56 @@ function AdminBookings() {
                 <thead className="bg-slate-50 text-left text-slate-700">
                   <tr>
                     <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Event Type</th>
+                    <th className="px-4 py-3">Event</th>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Payment</th>
+                    <th className="px-4 py-3">Booking Status</th>
+                    <th className="px-4 py-3">Payment Status</th>
+                    <th className="px-4 py-3">Advance</th>
+                    <th className="px-4 py-3">Payment Ref</th>
+                    <th className="px-4 py-3">Invoice</th>
                     <th className="px-4 py-3">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {bookings.map((b) => (
-                    <tr key={b.id} className="border-t border-slate-200">
-                      <td className="px-4 py-3">{b.name}</td>
-                      <td className="px-4 py-3">{b.event_type}</td>
-                      <td className="px-4 py-3">{b.event_date}</td>
-                      <td className="px-4 py-3">{b.phone}</td>
-                      <td className="px-4 py-3">{b.status}</td>
-                      <td className="px-4 py-3">{b.advance_payment}</td>
+                  {bookings.map((booking) => (
+                    <tr key={booking.id} className="border-t border-slate-200">
+                      <td className="px-4 py-3">{booking.name}</td>
+                      <td className="px-4 py-3">{booking.event_type}</td>
+                      <td className="px-4 py-3">{booking.event_date}</td>
+                      <td className="px-4 py-3">{booking.phone}</td>
+                      <td className="px-4 py-3">{booking.status}</td>
+                      <td className="px-4 py-3">{booking.payment_status || "pending"}</td>
+                      <td className="px-4 py-3">INR {Number(booking.advance_amount ?? booking.advance_payment ?? 0).toFixed(2)}</td>
+                      <td className="px-4 py-3">{booking.payment_reference || "-"}</td>
+                      <td className="px-4 py-3">{booking.invoice_number || "-"}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
-                          <button className="rounded bg-slate-900 px-2 py-1 text-white" onClick={() => updateStatus(b.id, "pending")}>Pending</button>
-                          <button className="rounded bg-emerald-600 px-2 py-1 text-white" onClick={() => updateStatus(b.id, "approved")}>Approve</button>
-                          <button className="rounded bg-red-600 px-2 py-1 text-white" onClick={() => updateStatus(b.id, "rejected")}>Reject</button>
+                          <button
+                            className="rounded bg-slate-900 px-2 py-1 text-white"
+                            onClick={() => updateStatus(booking, "pending")}
+                          >
+                            Pending
+                          </button>
+                          <button
+                            className="rounded bg-emerald-600 px-2 py-1 text-white"
+                            onClick={() => updateStatus(booking, "approved")}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            className="rounded bg-red-600 px-2 py-1 text-white"
+                            onClick={() => updateStatus(booking, "rejected")}
+                          >
+                            Reject
+                          </button>
                         </div>
                       </td>
                     </tr>
                   ))}
                   {!loading && bookings.length === 0 && (
                     <tr>
-                      <td className="px-4 py-6 text-slate-500" colSpan={7}>No bookings found.</td>
+                      <td className="px-4 py-6 text-slate-500" colSpan={10}>No bookings found.</td>
                     </tr>
                   )}
                 </tbody>

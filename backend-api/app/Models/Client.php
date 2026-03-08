@@ -15,6 +15,7 @@ class Client extends Authenticatable
         'email',
         'password',
         'folder_id',
+        'drive_folder_id',
     ];
 
     protected $hidden = [
@@ -31,5 +32,10 @@ class Client extends Authenticatable
     public function tokens(): HasMany
     {
         return $this->hasMany(ClientApiToken::class);
+    }
+
+    public function resolvedDriveFolderId(): ?string
+    {
+        return $this->drive_folder_id ?: $this->folder_id;
     }
 }

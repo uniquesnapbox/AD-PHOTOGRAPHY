@@ -20,7 +20,11 @@ class Booking extends Model
         'location',
         'message',
         'status',
+        'payment_status',
         'advance_payment',
+        'advance_amount',
+        'payment_reference',
+        'invoice_number',
     ];
 
     protected function casts(): array
@@ -28,6 +32,7 @@ class Booking extends Model
         return [
             'event_date' => 'date',
             'advance_payment' => 'decimal:2',
+            'advance_amount' => 'decimal:2',
         ];
     }
 
