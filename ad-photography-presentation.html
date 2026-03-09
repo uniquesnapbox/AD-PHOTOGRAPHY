@@ -1,0 +1,739 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AD Photography Management System Presentation</title>
+  <meta name="description" content="Professional presentation for AD Photography Management System" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --brand-black: #111111;
+      --brand-red: #E21B1B;
+      --brand-white: #ffffff;
+      --brand-soft: #f6f7f9;
+      --text-muted: #5d6470;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      color: var(--brand-black);
+      background: linear-gradient(135deg, #0f0f0f 0%, #1f1f1f 100%);
+      overflow: hidden;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .deck::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 85% 12%, rgba(226, 27, 27, 0.25), transparent 30%),
+        radial-gradient(circle at 10% 88%, rgba(226, 27, 27, 0.15), transparent 35%);
+      pointer-events: none;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(15, 15, 15, 0.74);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--brand-white);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .brand .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--brand-red);
+      box-shadow: 0 0 0 4px rgba(226, 27, 27, 0.25);
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-btn {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--brand-white);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .tool-btn:hover { background: rgba(226, 27, 27, 0.8); border-color: var(--brand-red); }
+
+    .slide {
+      position: absolute;
+      inset: 70px 0 86px;
+      padding: 28px clamp(16px, 4vw, 56px);
+      opacity: 0;
+      transform: translateX(55px) scale(0.98);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+      z-index: 5;
+    }
+
+    .slide.prev { transform: translateX(-60px) scale(0.98); }
+
+    .panel {
+      width: min(1180px, 100%);
+      min-height: min(72vh, 760px);
+      background: var(--brand-white);
+      border-radius: 26px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+      display: grid;
+      grid-template-columns: minmax(210px, 290px) 1fr;
+      overflow: hidden;
+      border: 1px solid rgba(17, 17, 17, 0.08);
+    }
+
+    .panel-left {
+      position: relative;
+      background:
+        linear-gradient(180deg, #131313 0%, #1d1d1d 50%, #111 100%);
+      color: var(--brand-white);
+      padding: 28px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .panel-left::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(226, 27, 27, 0.34), transparent 68%);
+      right: -95px;
+      bottom: -95px;
+    }
+
+    .icon-wrap {
+      width: 92px;
+      height: 92px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.05);
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      color: var(--brand-red);
+    }
+
+    .slide-no {
+      font-size: 14px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #c9cdd5;
+    }
+
+    .panel-right {
+      padding: clamp(20px, 3vw, 42px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fafc 100%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-weight: 700;
+      color: var(--brand-red);
+    }
+
+    h1, h2 {
+      margin: 0;
+      line-height: 1.12;
+      font-size: clamp(1.9rem, 4vw, 3.1rem);
+      color: #111820;
+    }
+
+    .sub {
+      margin: 2px 0 6px;
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      color: var(--text-muted);
+      max-width: 900px;
+    }
+
+    ul {
+      margin: 4px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      color: #1e2631;
+      font-size: clamp(0.98rem, 1.6vw, 1.08rem);
+      line-height: 1.5;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #e9ecf1;
+    }
+
+    li i {
+      margin-top: 2px;
+      color: var(--brand-red);
+      width: 18px;
+      text-align: center;
+    }
+
+    .highlight {
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 1px solid #f0d3d3;
+      background: linear-gradient(135deg, #fff0f0, #ffffff);
+      padding: 12px 14px;
+      font-weight: 500;
+      color: #342a2a;
+    }
+
+    .nav {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15, 15, 15, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--brand-white);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: 0.2s ease;
+    }
+
+    .nav-btn:hover { background: var(--brand-red); border-color: var(--brand-red); }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+      padding: 0 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.35);
+      transition: 0.25s ease;
+      border: 0;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .dot.active {
+      width: 24px;
+      background: var(--brand-red);
+    }
+
+    .counter {
+      color: #e8ebf0;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .slide { inset: 64px 0 78px; padding: 14px 12px; }
+      .panel {
+        grid-template-columns: 1fr;
+        min-height: min(76vh, 820px);
+      }
+      .panel-left {
+        min-height: 132px;
+        flex-direction: row;
+        align-items: center;
+      }
+      .panel-left::after { display: none; }
+      .icon-wrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+        font-size: 28px;
+      }
+      .panel-right { padding: 20px 16px 18px; }
+      li { font-size: 0.95rem; }
+      .topbar { padding-inline: 12px; }
+      .brand { font-size: 0.94rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+    <header class="topbar">
+      <div class="brand"><span class="dot"></span> AD Photography Presentation</div>
+      <div class="tools">
+        <button class="tool-btn" id="fullscreenBtn"><i class="fa-solid fa-expand"></i> Full Screen</button>
+      </div>
+    </header>
+
+    <section class="slide active">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-camera-retro"></i></div>
+          <div class="slide-no">Slide 01</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-star"></i> Title</span>
+          <h1>AD Photography Management System</h1>
+          <p class="sub">Smart Booking, Payment &amp; Client Gallery Platform</p>
+          <div class="highlight">A complete business system designed to convert leads into paying photography clients with a premium digital experience.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="slide-no">Slide 02</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-circle-exclamation"></i> Problem</span>
+          <h2>Challenges in Photography Business</h2>
+          <p class="sub">Traditional process creates delays, confusion and client dissatisfaction.</p>
+          <ul>
+            <li><i class="fa-solid fa-calendar-xmark"></i> Manual booking handling causes missed inquiries.</li>
+            <li><i class="fa-solid fa-money-bill-transfer"></i> Payment follow-up often becomes confusing and untracked.</li>
+            <li><i class="fa-solid fa-photo-film"></i> Client photo delivery is scattered across multiple apps.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-lightbulb"></i></div>
+          <div class="slide-no">Slide 03</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-check"></i> Solution</span>
+          <h2>One Complete Management Platform</h2>
+          <p class="sub">AD Photography Management System centralizes every client journey touchpoint in one professional workflow.</p>
+          <ul>
+            <li><i class="fa-solid fa-layer-group"></i> Unified booking, payment, gallery and communication process.</li>
+            <li><i class="fa-solid fa-gauge-high"></i> Faster operations with fewer manual tasks.</li>
+            <li><i class="fa-solid fa-face-smile"></i> Better client trust with transparent status updates.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-table-list"></i></div>
+          <div class="slide-no">Slide 04</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-list-check"></i> Overview</span>
+          <h2>Feature Overview</h2>
+          <ul>
+            <li><i class="fa-solid fa-globe"></i> Online booking form for instant inquiry capture.</li>
+            <li><i class="fa-solid fa-user-shield"></i> Admin dashboard to manage end-to-end operations.</li>
+            <li><i class="fa-solid fa-qrcode"></i> Advance payment with UPI QR integration.</li>
+            <li><i class="fa-solid fa-file-invoice"></i> Automatic invoice generation and download.</li>
+            <li><i class="fa-solid fa-user-lock"></i> Client portal for booking and payment visibility.</li>
+            <li><i class="fa-solid fa-cloud"></i> Google Drive gallery integration for delivery.</li>
+            <li><i class="fa-solid fa-blog"></i> Blog SEO system to increase organic leads.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="slide-no">Slide 05</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-clock"></i> Booking</span>
+          <h2>Booking System</h2>
+          <ul>
+            <li><i class="fa-solid fa-mobile-screen"></i> Clients submit booking details online in minutes.</li>
+            <li><i class="fa-solid fa-bell"></i> Admin receives instant booking notification.</li>
+            <li><i class="fa-solid fa-table-columns"></i> All bookings are tracked from one dashboard.</li>
+          </ul>
+          <div class="highlight">Result: No lost inquiries and faster response time to every lead.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-money-check-dollar"></i></div>
+          <div class="slide-no">Slide 06</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-wallet"></i> Payment</span>
+          <h2>Payment System</h2>
+          <ul>
+            <li><i class="fa-solid fa-qrcode"></i> UPI QR code payment with dynamic amount.</li>
+            <li><i class="fa-solid fa-indian-rupee-sign"></i> Advance payment tracking per booking.</li>
+            <li><i class="fa-solid fa-file-circle-check"></i> Automatic invoice generation after payment.</li>
+          </ul>
+          <div class="highlight">Result: Professional billing and reduced payment confusion.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-desktop"></i></div>
+          <div class="slide-no">Slide 07</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-user-gear"></i> Admin</span>
+          <h2>Admin Dashboard</h2>
+          <ul>
+            <li><i class="fa-solid fa-users"></i> Manage clients and assigned gallery folders.</li>
+            <li><i class="fa-solid fa-coins"></i> Manage payments and booking approvals.</li>
+            <li><i class="fa-solid fa-pen-ruler"></i> Manage blog and marketing content.</li>
+            <li><i class="fa-solid fa-images"></i> Manage gallery delivery workflows.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-user"></i></div>
+          <div class="slide-no">Slide 08</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-right-to-bracket"></i> Client</span>
+          <h2>Client Portal</h2>
+          <ul>
+            <li><i class="fa-solid fa-lock"></i> Secure client login.</li>
+            <li><i class="fa-solid fa-receipt"></i> View booking details and progress.</li>
+            <li><i class="fa-solid fa-credit-card"></i> Check payment status and invoices.</li>
+            <li><i class="fa-solid fa-image"></i> Access personal photo gallery anytime.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+          <div class="slide-no">Slide 09</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-share-nodes"></i> Delivery</span>
+          <h2>Photo Delivery System</h2>
+          <ul>
+            <li><i class="fa-brands fa-google-drive"></i> Google Drive integration for scalable delivery.</li>
+            <li><i class="fa-solid fa-eye"></i> Gallery preview before download.</li>
+            <li><i class="fa-solid fa-download"></i> Direct image download in client portal.</li>
+            <li><i class="fa-brands fa-whatsapp"></i> Share gallery links on WhatsApp instantly.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+          <div class="slide-no">Slide 10</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-arrow-trend-up"></i> SEO</span>
+          <h2>Blog SEO System</h2>
+          <ul>
+            <li><i class="fa-solid fa-pen-to-square"></i> Publish photography-focused blog posts.</li>
+            <li><i class="fa-solid fa-ranking-star"></i> Improve Google ranking with SEO pages.</li>
+            <li><i class="fa-solid fa-phone-volume"></i> Generate more client inquiries organically.</li>
+          </ul>
+          <div class="highlight">Result: Marketing channel built directly inside the system.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-arrows-spin"></i></div>
+          <div class="slide-no">Slide 11</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-diagram-project"></i> Workflow</span>
+          <h2>System Workflow</h2>
+          <ul>
+            <li><i class="fa-solid fa-arrow-right"></i> 1. Client booking submission.</li>
+            <li><i class="fa-solid fa-arrow-right"></i> 2. Admin approval and advance setup.</li>
+            <li><i class="fa-solid fa-arrow-right"></i> 3. Advance payment through UPI QR.</li>
+            <li><i class="fa-solid fa-arrow-right"></i> 4. Photo delivery via client portal gallery.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-briefcase"></i></div>
+          <div class="slide-no">Slide 12</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-building"></i> Studio Benefits</span>
+          <h2>Benefits for Photography Studios</h2>
+          <ul>
+            <li><i class="fa-solid fa-hourglass-half"></i> Save time on repetitive admin tasks.</li>
+            <li><i class="fa-solid fa-robot"></i> Automate booking-to-delivery workflow.</li>
+            <li><i class="fa-solid fa-award"></i> Deliver a more professional client experience.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-heart"></i></div>
+          <div class="slide-no">Slide 13</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-user-check"></i> Client Benefits</span>
+          <h2>Benefits for Clients</h2>
+          <ul>
+            <li><i class="fa-solid fa-computer-mouse"></i> Easy online booking process.</li>
+            <li><i class="fa-solid fa-shield-halved"></i> Secure payment with full transparency.</li>
+            <li><i class="fa-solid fa-bolt"></i> Fast photo access and download delivery.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-code"></i></div>
+          <div class="slide-no">Slide 14</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-screwdriver-wrench"></i> Technology</span>
+          <h2>Technology Stack</h2>
+          <ul>
+            <li><i class="fa-brands fa-react"></i> React frontend for modern user experience.</li>
+            <li><i class="fa-brands fa-laravel"></i> Laravel backend for secure APIs.</li>
+            <li><i class="fa-solid fa-database"></i> MySQL for reliable business data storage.</li>
+            <li><i class="fa-brands fa-google-drive"></i> Google Drive API for gallery delivery.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-rocket"></i></div>
+          <div class="slide-no">Slide 15</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-flask"></i> Future</span>
+          <h2>Future Features</h2>
+          <ul>
+            <li><i class="fa-solid fa-heart-circle-check"></i> Advanced photo selection system.</li>
+            <li><i class="fa-brands fa-whatsapp"></i> WhatsApp automation for reminders and follow-up.</li>
+            <li><i class="fa-solid fa-file-zipper"></i> ZIP gallery download for faster delivery.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="slide">
+      <article class="panel">
+        <div class="panel-left">
+          <div class="icon-wrap"><i class="fa-solid fa-bullhorn"></i></div>
+          <div class="slide-no">Slide 16</div>
+        </div>
+        <div class="panel-right">
+          <span class="eyebrow"><i class="fa-solid fa-handshake-angle"></i> Call To Action</span>
+          <h2>Start using AD Photography System today</h2>
+          <p class="sub">Deliver premium digital experience, improve operations, and convert more leads into paying customers.</p>
+          <ul>
+            <li><i class="fa-solid fa-check"></i> Modern booking and payment flow.</li>
+            <li><i class="fa-solid fa-check"></i> Faster and smarter photo delivery.</li>
+            <li><i class="fa-solid fa-check"></i> Stronger brand trust and client retention.</li>
+          </ul>
+          <div class="highlight">Thank You - Ready for Demo &amp; Deployment</div>
+        </div>
+      </article>
+    </section>
+
+    <nav class="nav" aria-label="Slide navigation">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="dots" id="dots"></div>
+      <div class="counter" id="counter">1 / 16</div>
+      <button class="nav-btn" id="nextBtn" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
+    </nav>
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const dotsWrap = document.getElementById('dots');
+      const counter = document.getElementById('counter');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      let index = 0;
+      let touchStartX = 0;
+
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot';
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+        dot.addEventListener('click', () => goTo(i));
+        dotsWrap.appendChild(dot);
+      });
+
+      const dots = Array.from(dotsWrap.querySelectorAll('.dot'));
+
+      function render() {
+        slides.forEach((slide, i) => {
+          slide.classList.remove('active', 'prev');
+          if (i === index) slide.classList.add('active');
+          if (i < index) slide.classList.add('prev');
+        });
+
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+        counter.textContent = `${index + 1} / ${slides.length}`;
+      }
+
+      function goTo(nextIndex) {
+        if (nextIndex < 0) nextIndex = slides.length - 1;
+        if (nextIndex >= slides.length) nextIndex = 0;
+        index = nextIndex;
+        render();
+      }
+
+      function next() { goTo(index + 1); }
+      function prev() { goTo(index - 1); }
+
+      prevBtn.addEventListener('click', prev);
+      nextBtn.addEventListener('click', next);
+
+      document.addEventListener('keydown', (event) => {
+        const key = event.key;
+        if (key === 'ArrowRight' || key === 'PageDown' || key === ' ') {
+          event.preventDefault();
+          next();
+        }
+        if (key === 'ArrowLeft' || key === 'PageUp' || key === 'Backspace') {
+          event.preventDefault();
+          prev();
+        }
+        if (key.toLowerCase() === 'f') {
+          toggleFullscreen();
+        }
+      });
+
+      document.addEventListener('touchstart', (event) => {
+        touchStartX = event.changedTouches[0].screenX;
+      }, { passive: true });
+
+      document.addEventListener('touchend', (event) => {
+        const diffX = event.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(diffX) > 50) {
+          if (diffX < 0) next();
+          if (diffX > 0) prev();
+        }
+      }, { passive: true });
+
+      function toggleFullscreen() {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+          elem.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+      render();
+    })();
+  </script>
+</body>
+</html>
+

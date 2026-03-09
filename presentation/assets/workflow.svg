@@ -1,0 +1,31 @@
+﻿<svg width="1200" height="430" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Workflow steps illustration">
+  <rect width="1200" height="430" rx="24" fill="#ffffff"/>
+  <rect x="42" y="40" width="1116" height="350" rx="20" fill="#f8fafc" stroke="#e4e7ec"/>
+
+  <g font-family="Arial" font-weight="700" font-size="22" text-anchor="middle">
+    <rect x="90" y="134" width="220" height="162" rx="16" fill="#ffffff" stroke="#e4e7ec"/>
+    <text x="200" y="222" fill="#111827">Client Booking</text>
+
+    <rect x="350" y="134" width="220" height="162" rx="16" fill="#ffffff" stroke="#e4e7ec"/>
+    <text x="460" y="222" fill="#111827">Admin Approval</text>
+
+    <rect x="610" y="134" width="220" height="162" rx="16" fill="#ffffff" stroke="#e4e7ec"/>
+    <text x="720" y="222" fill="#111827">Advance Payment</text>
+
+    <rect x="870" y="134" width="220" height="162" rx="16" fill="#ffffff" stroke="#e4e7ec"/>
+    <text x="980" y="222" fill="#111827">Photo Delivery</text>
+  </g>
+
+  <g fill="#e11d48">
+    <path d="M318 210h26l-10-8v16z"/>
+    <path d="M578 210h26l-10-8v16z"/>
+    <path d="M838 210h26l-10-8v16z"/>
+  </g>
+
+  <g fill="#e11d48">
+    <circle cx="200" cy="174" r="18"/>
+    <circle cx="460" cy="174" r="18"/>
+    <circle cx="720" cy="174" r="18"/>
+    <circle cx="980" cy="174" r="18"/>
+  </g>
+</svg>

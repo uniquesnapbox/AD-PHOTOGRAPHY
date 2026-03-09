@@ -1,0 +1,39 @@
+﻿<svg width="1300" height="420" viewBox="0 0 1300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System features illustration">
+  <rect width="1300" height="420" rx="24" fill="#ffffff"/>
+  <rect x="42" y="42" width="1216" height="336" rx="20" fill="#f7f8fa" stroke="#e3e6ec"/>
+
+  <g>
+    <rect x="92" y="92" width="220" height="104" rx="14" fill="#fff" stroke="#e3e6ec"/>
+    <circle cx="140" cy="144" r="18" fill="#d91f1f"/>
+    <rect x="171" y="136" width="118" height="14" rx="7" fill="#181c24"/>
+
+    <rect x="352" y="92" width="220" height="104" rx="14" fill="#fff" stroke="#e3e6ec"/>
+    <circle cx="400" cy="144" r="18" fill="#111319"/>
+    <rect x="431" y="136" width="118" height="14" rx="7" fill="#181c24"/>
+
+    <rect x="612" y="92" width="220" height="104" rx="14" fill="#fff" stroke="#e3e6ec"/>
+    <circle cx="660" cy="144" r="18" fill="#d91f1f"/>
+    <rect x="691" y="136" width="118" height="14" rx="7" fill="#181c24"/>
+
+    <rect x="872" y="92" width="220" height="104" rx="14" fill="#fff" stroke="#e3e6ec"/>
+    <circle cx="920" cy="144" r="18" fill="#111319"/>
+    <rect x="951" y="136" width="118" height="14" rx="7" fill="#181c24"/>
+  </g>
+
+  <g>
+    <rect x="232" y="250" width="836" height="94" rx="16" fill="#fff" stroke="#e3e6ec"/>
+    <g fill="#181c24" font-family="Arial" font-size="20" font-weight="700" text-anchor="middle">
+      <text x="350" y="307">Booking</text>
+      <text x="500" y="307">Approval</text>
+      <text x="650" y="307">Payment</text>
+      <text x="800" y="307">Delivery</text>
+      <text x="950" y="307">Portal</text>
+    </g>
+    <g fill="#d91f1f">
+      <path d="M415 299h26l-10 -8v16z"/>
+      <path d="M565 299h26l-10 -8v16z"/>
+      <path d="M715 299h26l-10 -8v16z"/>
+      <path d="M865 299h26l-10 -8v16z"/>
+    </g>
+  </g>
+</svg>
