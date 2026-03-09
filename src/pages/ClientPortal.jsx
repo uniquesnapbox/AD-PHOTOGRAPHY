@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+﻿import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import SEO from "../components/SEO";
 import { useAuth } from "../context/AuthContext";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
 
 function ClientPortal() {
   const { user, token, apiBaseUrl } = useAuth();
@@ -15,6 +16,7 @@ function ClientPortal() {
   const [bookings, setBookings] = useState([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
   const [preview, setPreview] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     if (!token) {
@@ -34,8 +36,14 @@ function ClientPortal() {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!res.ok) throw new Error("Failed to fetch files.");
-        const data = await res.json();
+        const data = await parseJsonSafe(res);
+        if (!res.ok) {
+          logApiError("Client photos fetch failed", {
+            status: res.status,
+            response: data,
+          });
+          throw new Error("Failed to fetch files.");
+        }
 
         const mapped = (data.photos || []).map((file) => ({
           id: file.id,
@@ -45,7 +53,10 @@ function ClientPortal() {
           downloadUrl: file.download_url,
         }));
         setImages(mapped);
-      } catch {
+      } catch (err) {
+        logApiError("Client photos request error", {
+          error: err?.message || err,
+        });
         setGalleryError("Unable to load gallery. Please contact AD Photography support.");
       } finally {
         setGalleryLoading(false);
@@ -59,12 +70,19 @@ function ClientPortal() {
             Authorization: `Bearer ${token}`,
           },
         });
-        const data = await res.json();
+        const data = await parseJsonSafe(res);
         if (res.ok) {
           setSelectedPhotoIds(data.selected_photo_ids || []);
+        } else {
+          logApiError("Client selections fetch failed", {
+            status: res.status,
+            response: data,
+          });
         }
-      } catch {
-        // ignore selection fetch errors
+      } catch (err) {
+        logApiError("Client selections request error", {
+          error: err?.message || err,
+        });
       }
     }
 
@@ -77,13 +95,20 @@ function ClientPortal() {
             Authorization: `Bearer ${token}`,
           },
         });
-        const data = await res.json();
+        const data = await parseJsonSafe(res);
         if (!res.ok) {
+          logApiError("Client bookings fetch failed", {
+            status: res.status,
+            response: data,
+          });
           setBookingError(data?.message || "Unable to load bookings.");
           return;
         }
         setBookings(data.bookings || []);
-      } catch {
+      } catch (err) {
+        logApiError("Client bookings request error", {
+          error: err?.message || err,
+        });
         setBookingError("Unable to connect to booking API.");
       } finally {
         setBookingLoading(false);
@@ -108,16 +133,25 @@ function ClientPortal() {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
+      const data = await parseJsonSafe(res);
 
       if (!res.ok) {
+        logApiError("Client photo selection failed", {
+          status: res.status,
+          response: data,
+          photoId,
+        });
         setSelectionMessage(data?.message || "Unable to select photo.");
         return;
       }
 
       setSelectedPhotoIds((prev) => (prev.includes(photoId) ? prev : [...prev, photoId]));
       setSelectionMessage("Photo added to selected list.");
-    } catch {
+    } catch (err) {
+      logApiError("Client photo selection request error", {
+        error: err?.message || err,
+        photoId,
+      });
       setSelectionMessage("Unable to connect to selection API.");
     } finally {
       setSelectingId("");
@@ -137,6 +171,14 @@ function ClientPortal() {
     });
   };
 
+  useEffect(() => {
+    if (searchParams.get("download") !== "all") return;
+    if (!images.length) return;
+
+    downloadAll();
+    setSearchParams({}, { replace: true });
+  }, [images, searchParams, setSearchParams]);
+
   const downloadInvoice = async (booking) => {
     try {
       const response = await fetch(`${apiBaseUrl}/api/client/bookings/${booking.id}/invoice`, {
@@ -146,7 +188,12 @@ function ClientPortal() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await parseJsonSafe(response);
+        logApiError("Client invoice download failed", {
+          status: response.status,
+          response: data,
+          bookingId: booking.id,
+        });
         setBookingError(data?.message || "Invoice download failed.");
         return;
       }
@@ -160,7 +207,11 @@ function ClientPortal() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(blobUrl);
-    } catch {
+    } catch (err) {
+      logApiError("Client invoice download request error", {
+        error: err?.message || err,
+        bookingId: booking.id,
+      });
       setBookingError("Unable to download invoice.");
     }
   };
@@ -187,7 +238,7 @@ function ClientPortal() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to="/selected-images" className="btn-primary">
+              <Link to="/client-portal/selected-images" className="btn-primary">
                 Selected Images ({selectedPhotoIds.length})
               </Link>
               <button type="button" onClick={downloadAll} className="btn-primary">
@@ -228,7 +279,7 @@ function ClientPortal() {
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {booking.status === "approved" && booking.payment_status !== "paid" && (
-                        <Link to={`/payment/${booking.id}`} className="btn-primary px-4 py-2">
+                        <Link to={`/client-portal/payment/${booking.id}`} className="btn-primary px-4 py-2">
                           Pay Advance
                         </Link>
                       )}
@@ -333,3 +384,6 @@ function ClientPortal() {
 }
 
 export default ClientPortal;
+
+
+

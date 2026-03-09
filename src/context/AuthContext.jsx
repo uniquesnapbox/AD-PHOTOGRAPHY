@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "ad_client_auth";
@@ -42,15 +43,24 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await response.json();
+      const data = await parseJsonSafe(response);
 
       if (!response.ok) {
+        logApiError("Client login failed", {
+          status: response.status,
+          response: data,
+          email,
+        });
         return { ok: false, message: data?.message || "Login failed." };
       }
 
       persist(data.client, data.token);
       return { ok: true };
-    } catch {
+    } catch (error) {
+      logApiError("Client login request error", {
+        error: error?.message || error,
+        email,
+      });
       return { ok: false, message: "Unable to connect to backend API." };
     }
   };
@@ -65,8 +75,10 @@ export function AuthProvider({ children }) {
           },
         });
       }
-    } catch {
-      // Ignore network errors during logout cleanup.
+    } catch (error) {
+      logApiError("Client logout request error", {
+        error: error?.message || error,
+      });
     } finally {
       setUser(null);
       setToken(null);

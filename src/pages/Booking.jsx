@@ -1,6 +1,7 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import SEO from "../components/SEO";
 import SectionHeading from "../components/SectionHeading";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -35,15 +36,24 @@ function Booking() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const data = await parseJsonSafe(res);
 
       if (!res.ok) {
+        logApiError("Create booking failed", {
+          status: res.status,
+          response: data,
+          payload: form,
+        });
         setStatus({ type: "error", message: data?.message || "Booking failed." });
       } else {
         setStatus({ type: "success", message: "Booking submitted successfully." });
         setForm(initialForm);
       }
-    } catch {
+    } catch (error) {
+      logApiError("Create booking request error", {
+        error: error?.message || error,
+        payload: form,
+      });
       setStatus({ type: "error", message: "Unable to connect to booking API." });
     } finally {
       setSubmitting(false);

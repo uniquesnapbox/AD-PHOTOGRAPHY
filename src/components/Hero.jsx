@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { company, heroSlides } from "../data/siteData";
@@ -69,7 +69,7 @@ function Hero() {
             <Link to="/contact" className="btn-primary">
               Book a Photoshoot
             </Link>
-            <Link to="/portfolio" className="btn-outline">
+            <Link to="/work" className="btn-outline">
               View Portfolio
             </Link>
           </motion.div>
@@ -94,3 +94,4 @@ function Hero() {
 }
 
 export default Hero;
+

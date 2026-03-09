@@ -3,21 +3,10 @@ import { Navigate, useNavigate } from "react-router-dom";
 import SEO from "../components/SEO";
 import SectionHeading from "../components/SectionHeading";
 import { useAuth } from "../context/AuthContext";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
+import { getStoredAdminAuth, setStoredAdminAuth } from "../utils/adminAuth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-const ADMIN_STORAGE_KEY = "ad_admin_auth";
-
-function getStoredAdminAuth() {
-  try {
-    const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed?.token ? parsed : null;
-  } catch {
-    localStorage.removeItem(ADMIN_STORAGE_KEY);
-    return null;
-  }
-}
 
 function Login() {
   const { isAuthenticated, login, loading } = useAuth();
@@ -54,18 +43,24 @@ function Login() {
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
+      const data = await parseJsonSafe(response);
       if (!response.ok) {
+        logApiError("Admin login failed", {
+          status: response.status,
+          response: data,
+          email: form.email,
+        });
         setStatus(data?.message || "Admin login failed.");
         return;
       }
 
-      localStorage.setItem(
-        ADMIN_STORAGE_KEY,
-        JSON.stringify({ token: data.token, admin: data.admin })
-      );
+      setStoredAdminAuth({ token: data.token, admin: data.admin });
       navigate("/admin/bookings");
-    } catch {
+    } catch (error) {
+      logApiError("Admin login request error", {
+        error: error?.message || error,
+        email: form.email,
+      });
       setStatus("Unable to connect to backend API.");
     } finally {
       setSubmitting(false);

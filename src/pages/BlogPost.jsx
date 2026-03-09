@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import SEO from "../components/SEO";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -18,16 +19,25 @@ function BlogPost() {
         setError("");
 
         const response = await fetch(`${API_BASE_URL}/api/blog/${encodeURIComponent(slug)}`);
-        const data = await response.json();
+        const data = await parseJsonSafe(response);
 
         if (!response.ok) {
+          logApiError("Load blog post failed", {
+            status: response.status,
+            response: data,
+            slug,
+          });
           setError(data?.message || "Blog post not found.");
           return;
         }
 
         setPost(data.post || null);
         setRelated(data.related_posts || []);
-      } catch {
+      } catch (err) {
+        logApiError("Load blog post request error", {
+          error: err?.message || err,
+          slug,
+        });
         setError("Unable to connect to blog API.");
       } finally {
         setLoading(false);

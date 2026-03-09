@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import Hero from "../components/Hero";
 import SEO from "../components/SEO";
 import SectionHeading from "../components/SectionHeading";
@@ -43,7 +43,7 @@ function Home() {
             <GalleryGrid photos={featuredPhotos} onPhotoClick={() => {}} />
           </div>
           <div className="mt-8 text-center">
-            <Link to="/portfolio" className="btn-primary">
+            <Link to="/work" className="btn-primary">
               View Full Gallery
             </Link>
           </div>
@@ -95,3 +95,4 @@ function Home() {
 }
 
 export default Home;
+

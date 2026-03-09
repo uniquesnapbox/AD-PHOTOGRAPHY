@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import QRCode from "qrcode";
 import SEO from "../components/SEO";
 import SectionHeading from "../components/SectionHeading";
 import { useAuth } from "../context/AuthContext";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
 
 const FALLBACK_UPI_ID = import.meta.env.VITE_UPI_ID || "";
 const FALLBACK_UPI_NAME = import.meta.env.VITE_UPI_PAYEE_NAME || "AD Photography";
@@ -62,10 +63,15 @@ function Payment() {
           }),
         ]);
 
-        const bookingData = await bookingResponse.json();
-        const settingsData = await settingsResponse.json();
+        const bookingData = await parseJsonSafe(bookingResponse);
+        const settingsData = await parseJsonSafe(settingsResponse);
 
         if (!bookingResponse.ok) {
+          logApiError("Payment page booking fetch failed", {
+            status: bookingResponse.status,
+            response: bookingData,
+            bookingId,
+          });
           setError(bookingData?.message || "Unable to load booking details.");
           return;
         }
@@ -81,9 +87,17 @@ function Payment() {
         if (settingsResponse.ok) {
           setPaymentSettings(settingsData.payment_settings || {});
         } else {
+          logApiError("Payment settings fetch failed", {
+            status: settingsResponse.status,
+            response: settingsData,
+          });
           setPaymentSettings({});
         }
-      } catch {
+      } catch (err) {
+        logApiError("Payment page request error", {
+          error: err?.message || err,
+          bookingId,
+        });
         setError("Unable to connect to backend API.");
       } finally {
         setLoading(false);
@@ -101,7 +115,13 @@ function Payment() {
 
     QRCode.toDataURL(upiUrl, { width: 260, margin: 1 })
       .then((url) => setQrImage(url))
-      .catch(() => setError("Unable to generate UPI QR code."));
+      .catch((err) => {
+        logApiError("UPI QR generation failed", {
+          error: err?.message || err,
+          upiUrl,
+        });
+        setError("Unable to generate UPI QR code.");
+      });
   }, [upiUrl]);
 
   const markPaymentDone = async () => {
@@ -128,8 +148,14 @@ function Payment() {
         }),
       });
 
-      const data = await response.json();
+      const data = await parseJsonSafe(response);
       if (!response.ok) {
+        logApiError("Booking payment mark failed", {
+          status: response.status,
+          response: data,
+          bookingId: booking.id,
+          payment_reference: paymentReference.trim(),
+        });
         setStatus({ type: "error", message: data?.message || "Payment update failed." });
         return;
       }
@@ -139,7 +165,11 @@ function Payment() {
         type: "success",
         message: "Payment marked as paid. Invoice generated and email sent to client.",
       });
-    } catch {
+    } catch (err) {
+      logApiError("Booking payment request error", {
+        error: err?.message || err,
+        bookingId: booking.id,
+      });
       setStatus({ type: "error", message: "Unable to connect to backend API." });
     } finally {
       setSubmitting(false);
@@ -157,7 +187,12 @@ function Payment() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await parseJsonSafe(response);
+        logApiError("Invoice download failed", {
+          status: response.status,
+          response: data,
+          bookingId: booking.id,
+        });
         setStatus({ type: "error", message: data?.message || "Invoice download failed." });
         return;
       }
@@ -171,14 +206,18 @@ function Payment() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(blobUrl);
-    } catch {
+    } catch (err) {
+      logApiError("Invoice download request error", {
+        error: err?.message || err,
+        bookingId: booking.id,
+      });
       setStatus({ type: "error", message: "Unable to download invoice." });
     }
   };
 
   return (
     <>
-      <SEO title="Advance Payment" path={`/payment/${bookingId}`} description="Pay booking advance and download invoice." />
+      <SEO title="Advance Payment" path={`/client-portal/payment/${bookingId}`} description="Pay booking advance and download invoice." />
       <section className="section-gap bg-white">
         <div className="container-wrap max-w-5xl">
           <SectionHeading eyebrow="Payment" title="Advance Payment" description="Scan UPI QR and confirm payment to generate your invoice instantly." />
@@ -275,3 +314,4 @@ function Payment() {
 }
 
 export default Payment;
+

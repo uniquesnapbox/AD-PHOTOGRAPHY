@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { company } from "../data/siteData";
 
 function Footer() {
@@ -18,11 +18,8 @@ function Footer() {
         <div>
           <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Quick Links</h4>
           <div className="mt-3 flex flex-col gap-2 text-sm">
-            <Link to="/services" className="hover:text-accent-300">
-              Services
-            </Link>
-            <Link to="/portfolio" className="hover:text-accent-300">
-              Portfolio
+            <Link to="/work" className="hover:text-accent-300">
+              Work
             </Link>
             <Link to="/about" className="hover:text-accent-300">
               About
@@ -35,6 +32,9 @@ function Footer() {
             </Link>
             <Link to="/contact" className="hover:text-accent-300">
               Contact
+            </Link>
+            <Link to="/booking" className="hover:text-accent-300">
+              Booking
             </Link>
             <Link to="/login" className="hover:text-accent-300">
               Login
@@ -53,7 +53,7 @@ function Footer() {
       </div>
 
       <div className="container-wrap mt-8 border-t border-slate-700 pt-5 text-center text-xs text-slate-500">
-        Copyright © {new Date().getFullYear()} {company.name}. All rights reserved.
+        Copyright (c) {new Date().getFullYear()} {company.name}. All rights reserved.
       </div>
     </footer>
   );

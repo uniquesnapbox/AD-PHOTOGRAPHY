@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import SectionHeading from "../components/SectionHeading";
 import { useAuth } from "../context/AuthContext";
+import { logApiError, parseJsonSafe } from "../utils/apiLogger";
 
 function SelectedImages() {
   const { token, apiBaseUrl } = useAuth();
@@ -37,15 +38,23 @@ function SelectedImages() {
           }),
         ]);
 
-        const photosData = await photosRes.json();
-        const selectionsData = await selectionsRes.json();
+        const photosData = await parseJsonSafe(photosRes);
+        const selectionsData = await parseJsonSafe(selectionsRes);
 
         if (!photosRes.ok) {
+          logApiError("Selected images: photos fetch failed", {
+            status: photosRes.status,
+            response: photosData,
+          });
           setError(photosData?.message || "Unable to load gallery photos.");
           return;
         }
 
         if (!selectionsRes.ok) {
+          logApiError("Selected images: selections fetch failed", {
+            status: selectionsRes.status,
+            response: selectionsData,
+          });
           setError(selectionsData?.message || "Unable to load selected images.");
           return;
         }
@@ -60,7 +69,10 @@ function SelectedImages() {
 
         setImages(mappedImages);
         setSelectedIds(selectionsData.selected_photo_ids || []);
-      } catch {
+      } catch (err) {
+        logApiError("Selected images request error", {
+          error: err?.message || err,
+        });
         setError("Unable to connect to backend API.");
       } finally {
         setLoading(false);
@@ -80,7 +92,7 @@ function SelectedImages() {
     <>
       <SEO
         title="Selected Images"
-        path="/selected-images"
+        path="/client-portal/selected-images"
         description="View all favourite photos selected by client."
       />
 
@@ -167,3 +179,4 @@ function SelectedImages() {
 }
 
 export default SelectedImages;
+
