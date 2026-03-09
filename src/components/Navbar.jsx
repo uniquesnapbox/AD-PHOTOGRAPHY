@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { company } from "../data/siteData";
 import { useAuth } from "../context/AuthContext";
@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 const navItems = [
   { label: "About", to: "/about" },
   { label: "Pricing", to: "/pricing" },
+  { label: "Blog", to: "/blog" },
   { label: "Contact", to: "/contact" },
   { label: "Booking", to: "/booking" },
 ];

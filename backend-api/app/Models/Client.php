@@ -34,6 +34,11 @@ class Client extends Authenticatable
         return $this->hasMany(ClientApiToken::class);
     }
 
+    public function photoSelections(): HasMany
+    {
+        return $this->hasMany(PhotoSelection::class);
+    }
+
     public function resolvedDriveFolderId(): ?string
     {
         return $this->drive_folder_id ?: $this->folder_id;

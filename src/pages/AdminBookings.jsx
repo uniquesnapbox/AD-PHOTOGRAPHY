@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import SectionHeading from "../components/SectionHeading";
 
@@ -173,7 +174,25 @@ function AdminBookings() {
               <p className="text-sm text-slate-700">
                 Logged in as: <span className="font-semibold">{auth.admin?.email}</span>
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to="/admin/clients"
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
+                >
+                  Manage Clients
+                </Link>
+                <Link
+                  to="/admin/payment-settings"
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
+                >
+                  Payment Settings
+                </Link>
+                <Link
+                  to="/admin/blog"
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
+                >
+                  Manage Blog
+                </Link>
                 <button type="button" className="btn-primary" onClick={loadBookings}>Refresh</button>
                 <button
                   type="button"
@@ -257,3 +276,4 @@ function AdminBookings() {
 }
 
 export default AdminBookings;
+

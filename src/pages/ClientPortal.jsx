@@ -3,29 +3,18 @@ import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import { useAuth } from "../context/AuthContext";
 
-const FAV_STORAGE_KEY = "ad_client_favourites";
-
 function ClientPortal() {
   const { user, token, apiBaseUrl } = useAuth();
   const [galleryLoading, setGalleryLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(true);
   const [galleryError, setGalleryError] = useState("");
   const [bookingError, setBookingError] = useState("");
+  const [selectionMessage, setSelectionMessage] = useState("");
+  const [selectingId, setSelectingId] = useState("");
   const [images, setImages] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
   const [preview, setPreview] = useState(null);
-  const [favourites, setFavourites] = useState([]);
-
-  useEffect(() => {
-    const raw = localStorage.getItem(`${FAV_STORAGE_KEY}_${user?.id || "guest"}`);
-    if (raw) {
-      try {
-        setFavourites(JSON.parse(raw));
-      } catch {
-        setFavourites([]);
-      }
-    }
-  }, [user?.id]);
 
   useEffect(() => {
     if (!token) {
@@ -63,6 +52,22 @@ function ClientPortal() {
       }
     }
 
+    async function fetchSelections() {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/client/selections`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setSelectedPhotoIds(data.selected_photo_ids || []);
+        }
+      } catch {
+        // ignore selection fetch errors
+      }
+    }
+
     async function fetchBookings() {
       try {
         setBookingLoading(true);
@@ -86,15 +91,37 @@ function ClientPortal() {
     }
 
     fetchPhotos();
+    fetchSelections();
     fetchBookings();
   }, [apiBaseUrl, token]);
 
-  const toggleFavourite = (fileId) => {
-    const next = favourites.includes(fileId)
-      ? favourites.filter((id) => id !== fileId)
-      : [...favourites, fileId];
-    setFavourites(next);
-    localStorage.setItem(`${FAV_STORAGE_KEY}_${user?.id || "guest"}`, JSON.stringify(next));
+  const selectPhoto = async (photoId) => {
+    if (!token || !photoId || selectedPhotoIds.includes(photoId)) return;
+
+    setSelectingId(photoId);
+    setSelectionMessage("");
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/client/photos/${encodeURIComponent(photoId)}/select`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSelectionMessage(data?.message || "Unable to select photo.");
+        return;
+      }
+
+      setSelectedPhotoIds((prev) => (prev.includes(photoId) ? prev : [...prev, photoId]));
+      setSelectionMessage("Photo added to selected list.");
+    } catch {
+      setSelectionMessage("Unable to connect to selection API.");
+    } finally {
+      setSelectingId("");
+    }
   };
 
   const whatsappShareUrl = useMemo(() => {
@@ -160,6 +187,9 @@ function ClientPortal() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Link to="/selected-images" className="btn-primary">
+                Selected Images ({selectedPhotoIds.length})
+              </Link>
               <button type="button" onClick={downloadAll} className="btn-primary">
                 Download All
               </button>
@@ -226,37 +256,49 @@ function ClientPortal() {
           </div>
 
           <div className="mt-12">
-            <h2 className="text-2xl font-bold text-ink">Your Private Gallery</h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-2xl font-bold text-ink">Your Private Gallery</h2>
+              {selectionMessage && <p className="text-sm text-emerald-600">{selectionMessage}</p>}
+            </div>
             {galleryLoading && <p className="mt-6 text-slate-500">Loading your gallery...</p>}
             {!galleryLoading && galleryError && <p className="mt-6 text-sm text-red-600">{galleryError}</p>}
 
             {!galleryLoading && !galleryError && (
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {images.map((img) => (
-                  <article
-                    key={img.id}
-                    className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-soft"
-                  >
-                    <button type="button" className="block w-full" onClick={() => setPreview(img)}>
-                      <img src={img.image} alt={img.name} loading="lazy" className="h-56 w-full object-cover" />
-                    </button>
-                    <div className="p-3">
-                      <p className="truncate text-sm font-medium text-slate-700">{img.name}</p>
-                      <div className="mt-3 flex items-center gap-2">
-                        <a href={img.downloadUrl} target="_blank" rel="noreferrer" className="btn-primary px-3 py-2">
-                          Download
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => toggleFavourite(img.id)}
-                          className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-accent-100"
-                        >
-                          {favourites.includes(img.id) ? "Unfavourite" : "Favourite"}
-                        </button>
+                {images.map((img) => {
+                  const isSelected = selectedPhotoIds.includes(img.id);
+
+                  return (
+                    <article
+                      key={img.id}
+                      className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-soft"
+                    >
+                      <button type="button" className="block w-full" onClick={() => setPreview(img)}>
+                        <img src={img.image} alt={img.name} loading="lazy" className="h-56 w-full object-cover" />
+                      </button>
+                      <div className="p-3">
+                        <p className="truncate text-sm font-medium text-slate-700">{img.name}</p>
+                        <div className="mt-3 flex items-center gap-2">
+                          <a href={img.downloadUrl} target="_blank" rel="noreferrer" className="btn-primary px-3 py-2">
+                            Download
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => selectPhoto(img.id)}
+                            disabled={isSelected || selectingId === img.id}
+                            className={`rounded-md border px-3 py-2 text-sm font-semibold ${
+                              isSelected
+                                ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                                : "border-slate-300 text-slate-700 hover:bg-accent-100"
+                            } disabled:cursor-not-allowed disabled:opacity-70`}
+                          >
+                            {isSelected ? "Selected" : selectingId === img.id ? "Saving..." : "Favourite"}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
             )}
           </div>

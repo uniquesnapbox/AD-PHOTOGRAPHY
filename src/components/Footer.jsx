@@ -30,6 +30,9 @@ function Footer() {
             <Link to="/pricing" className="hover:text-accent-300">
               Pricing
             </Link>
+            <Link to="/blog" className="hover:text-accent-300">
+              Blog
+            </Link>
             <Link to="/contact" className="hover:text-accent-300">
               Contact
             </Link>
